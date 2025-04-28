@@ -1,3 +1,5 @@
+import lv.acodemy.page_object.InventoryPage;
+import lv.acodemy.page_object.LoginPage;
 import org.assertj.core.api.Assertions;
 import org.openqa.selenium.By;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -10,28 +12,49 @@ import org.testng.asserts.Assertion;
 public class SauceDemoTest {
 
     ChromeDriver driver;
+    LoginPage loginPage;
+    InventoryPage inventoryPage;
+
 
     @BeforeMethod
     public void beforeTest() {
-        // Chromedriver
+
         driver = new ChromeDriver();
-        // How to call driver methods?
-        // URL: www.saucedemo.com
         driver.get("https://www.saucedemo.com");
-        driver.findElement(By.id("user-name")).sendKeys("standard_user");
-        driver.findElement(By.id("password")).sendKeys("secret_sauce");
-        driver.findElement(By.xpath("//input[@data-test='login-button']")).click();
+
+        loginPage = new LoginPage(driver);
+        inventoryPage = new InventoryPage(driver);
+
     }
 
     @Test
     public void verifyLoggedInTest() {
+        loginPage.authorize("standard_user", "secret_sauce");
+
         String productsText = driver.findElement(By.className("title")).getText();
         Assertions.assertThat(productsText)
                 .withFailMessage("Are u lalka?", productsText)
+                .isNotNull()
                 .isNotEmpty()
-                .isNotNull();
+                .startsWith("Prod")
+                .endsWith("ucts")
+                .isEqualTo("Products");
 
         Assert.assertEquals(productsText, "Products");
+    }
+
+    @Test
+    public void logInTest() {
+        LoginPage loginPage = new LoginPage(driver);
+        loginPage.authorize("standard_user", "secret_sauce");
+    }
+
+    @Test
+    public void addItemToCartTest() {
+        loginPage.authorize("standard_user", "secret_sauce");
+
+        InventoryPage inventoryPage = new InventoryPage(driver);
+        inventoryPage.addItemToCartByName("Onesie");
     }
 
     @AfterMethod()
