@@ -15,6 +15,8 @@ import org.testng.asserts.Assertion;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 public class SauceDemoTest {
 
     ChromeDriver driver;
@@ -42,6 +44,8 @@ public class SauceDemoTest {
         options.setExperimentalOption("prefs", prefs);
 
         options.addArguments("--incognito");
+        options.addArguments("--start-maximized");
+        options.addArguments("--headless");
 
         driver = new ChromeDriver(options);
         driver.get("https://www.saucedemo.com");
@@ -59,7 +63,7 @@ public class SauceDemoTest {
         loginPage.authorize("standard_user", "secret_sauce");
 
         String productsText = driver.findElement(By.className("title")).getText();
-        Assertions.assertThat(productsText)
+        assertThat(productsText)
                 .withFailMessage("Are u lalka?", productsText)
                 .isNotNull()
                 .isNotEmpty()
@@ -78,19 +82,39 @@ public class SauceDemoTest {
 
     @Test
     public void addItemToCartTest() {
+        logger.info("Scenario: Add item to the cart");
+
+        logger.info("Step 1: User is trying to authorize");
+
         loginPage.authorize("standard_user", "secret_sauce");
+        logger.info("User is authorized");
+
+        logger.info("Step 2: Adding item to the cart");
+
         InventoryPage inventoryPage = new InventoryPage(driver);
         inventoryPage.addItemToCartByName("Onesie");
-        Assertions.assertThat(headerPage.getCartBadgeText()).isEqualTo("1");
+        assertThat(headerPage.getCartBadgeText()).isEqualTo("1");
+
+        logger.info("Step 3: Checking if item was added to the cart");
+        assertThat(headerPage.getCartBadgeText()).isEqualTo("1");
+        logger.info("Item was added to the cart");
 
         headerPage.getShoppingCartLink().click();
-        Assertions.assertThat(cartPage.getCartItems().size()).isEqualTo("1");
+        assertThat(cartPage.getCartItems().size()).isEqualTo("1");
 
         cartPage.getCheckoutButton().click();
+
 
         String firstName = data.name().firstName();
         String lastName = data.name().lastName();
         String postalCode = data.address().zipCode();
+
+        logger.debug("First name: {}, last name: {}, postal code: {}", firstName, lastName, postalCode);
+
+        checkoutPage.fillCheckoutForm(
+                firstName,
+                lastName,
+                postalCode);
     }
 
     @AfterMethod()
